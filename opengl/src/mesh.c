@@ -1,5 +1,7 @@
-#include "mesh.h"
 #include "glad/gl.h"
+
+#include "mesh.h"
+#include "cube.h"
 #include "utils.h"
 
 GLuint loadCubeMesh() {
