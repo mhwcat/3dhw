@@ -1,6 +1,10 @@
 # 3dhw
 Set of "hello world"-style examples for all modern graphics APIs and platforms (on desktop PC) that goes step further than drawing a triangle.
 
+
+https://user-images.githubusercontent.com/829477/156614229-b85c5640-44bf-4574-bd53-29baecaabebd.mp4
+
+
 ## Purpose
 Aim of this project is to provide minimal examples of basic 3D object rendering (in this case - rotating textured cube with photo of my cat on it). All examples have comments and are written in a way that should be understandable for beginners wanting to learn basics of various graphics APIs. Every example follows this steps:
 1) Setup resizable, closable window
