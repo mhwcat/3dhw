@@ -7,15 +7,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_SUPPRESS_REGENERATION True)
 
-# Try to find Vulkan SDK based on "VULKAN_SDK" environment variable, show error if not found
-if(DEFINED ENV{VULKAN_SDK})
-    set(VULKAN_SDK_DIR $ENV{VULKAN_SDK} CACHE PATH "LunarG Vulkan SDK path")
-else()
-    set(VULKAN_SDK_DIR "VULKAN-NOTFOUND" CACHE PATH "LunarG Vulkan SDK path")
-endif()
-if(VULKAN_SDK_DIR STREQUAL "VULKAN-NOTFOUND")
-    message(FATAL_ERROR "LunarG Vulkan SDK not found, please provide path manually to VULKAN_SDK_DIR variable.")
-endif()
+find_package(Vulkan REQUIRED)
 
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -59,11 +51,11 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT $
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include/)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/../include/)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/../../common/)
-target_include_directories(${PROJECT_NAME} PUBLIC ${VULKAN_SDK_DIR}/include/)
+target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
 
 target_link_directories(${PROJECT_NAME} PUBLIC ${VULKAN_SDK_DIR}/lib)
 
-target_link_libraries(${PROJECT_NAME} vulkan-1)   # link Vulkan lib
+target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES})   # link Vulkan lib
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 
 # Copy assets/ directory containing texture to build dir

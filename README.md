@@ -1,4 +1,6 @@
 # 3dhw
+[![Build status](https://github.com/mhwcat/3dhw/workflows/Build/badge.svg)](https://github.com/mhwcat/3dhw/actions)
+
 Set of "hello world"-style examples for all modern graphics APIs and platforms (on desktop PC) that goes step further than drawing a triangle.
 
 
@@ -36,7 +38,7 @@ Examples will print verbose information about current program state to stdout or
 
 ## Building
 ### Vulkan caveats
-CMake will try to automatically find Vulkan SDK path based on environment variable, but if it fails, set it manually in `VULKAN_SDK_DIR` CMake variable.  
+CMake will try to automatically find Vulkan SDK path based on environment variable, but if it fails, set it manually in CMake.  
 
 Vulkan uses precompiled SPIR-V shaders, so before running example, shaders have to be compiled using `glslc` (provided with Vulkan SDK):
 ```
@@ -58,5 +60,4 @@ Use [CMake](https://cmake.org/download/) to generate Visual Studio solution and 
 ## Todo
 * Implement DirectX and Metal
 * Better code documentation for Vulkan
-* Investigate Vulkan validation layers errors on Windows
 * Wayland support on Linux

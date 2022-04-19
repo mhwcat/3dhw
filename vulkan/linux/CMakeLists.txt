@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.7)
 
 project(3dhw-vulkan C)
 
@@ -7,6 +7,8 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_SUPPRESS_REGENERATION True)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+
+find_package(Vulkan REQUIRED)
 
 if (MSVC)
     #add_compile_options(/W4 /WX)
@@ -32,9 +34,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include/
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/../include/)
 #target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/../../common/glad/include/)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/../../common/)
+target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} X11)  # link X11 lib
-target_link_libraries(${PROJECT_NAME} vulkan)   # link Vulkan lib
+target_link_libraries(${PROJECT_NAME} ${Vulkan_LIBRARIES})   # link Vulkan lib
 target_link_libraries(${PROJECT_NAME} m)    # link math lib
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
 

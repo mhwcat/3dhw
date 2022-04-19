@@ -1,0 +1,93 @@
+name: Build
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  build-opengl-linux:
+    name: Build OpenGL on Linux
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./opengl/linux
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: sudo apt install -y libx11-dev libxrandr-dev mesa-common-dev
+    - name: Make build dir
+      run: mkdir build
+    - name: CMake configure
+      run: cmake -Bbuild
+    - name: Build
+      run: cmake --build build/
+      env:
+        MAKEFLAGS: "-j2"
+
+  build-opengl-windows:
+    name: Build OpenGL on Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./opengl/win32
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
+    - name: Make build dir
+      run: mkdir build
+    - name: CMake configure
+      run: cmake -Bbuild
+    - name: Build
+      run: msbuild build\3dhw-opengl.sln
+
+  build-vulkan-linux:
+    name: Build Vulkan on Linux
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./vulkan/linux
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install deps
+      run: sudo apt install -y libx11-dev libxrandr-dev mesa-common-dev
+    - uses: humbletim/setup-vulkan-sdk@v1.2.0
+      with:
+        vulkan-query-version: latest
+        vulkan-components: Vulkan-Headers, Vulkan-Loader
+        vulkan-use-cache: true
+    - name: Make build dir
+      run: mkdir build
+    - name: CMake configure
+      run: cmake -Bbuild
+    - name: Build
+      run: cmake --build build/
+      env:
+        MAKEFLAGS: "-j2"
+
+  build-vulkan-windows:
+    name: Build Vulkan on Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./vulkan/win32
+    steps:
+    - uses: actions/checkout@v2
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
+    - uses: humbletim/setup-vulkan-sdk@v1.2.0
+      with:
+        vulkan-query-version: latest
+        vulkan-components: Vulkan-Headers, Vulkan-Loader
+        vulkan-use-cache: true
+    - name: Make build dir
+      run: mkdir build
+    - name: CMake configure
+      run: cmake -Bbuild
+    - name: Build
+      run: msbuild build\3dhw-vulkan.sln
+       
