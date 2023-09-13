@@ -1,3 +1,6 @@
+// Use IEEE Standard 1003.1-2008 POSIX extensions
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -19,6 +22,8 @@
 static const int WINDOW_WIDTH = 1600;
 static const int WINDOW_HEIGHT = 900;
 static const char* WINDOW_TITLE = "3dhw-opengl";
+static int currentWindowWidth = WINDOW_WIDTH;
+static int currentWindowHeight = WINDOW_HEIGHT;
 
 typedef struct LinuxWindowInfo {
     Display* display;
@@ -58,14 +63,14 @@ LinuxWindowInfo createWindowAndGLContext() {
     setWindowAttributes.event_mask |= StructureNotifyMask; // we need to handle window resize events
 
     // Create window
-    Window window = XCreateWindow(display, root, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, visualInfo->depth, InputOutput, 
+    Window window = XCreateWindow(display, root, 0, 0, currentWindowWidth, currentWindowHeight, 0, visualInfo->depth, InputOutput, 
         visualInfo->visual, CWColormap | CWEventMask, &setWindowAttributes);
 
     XMapWindow(display, window);
     XStoreName(display, window, WINDOW_TITLE);
     // Move window to center of screen (setting x, y in XCreateWindow does not work)
-    XMoveWindow(display, window, (screen->width / 2) - (WINDOW_WIDTH / 2), 
-        (screen->height / 2) - (WINDOW_HEIGHT / 2));
+    XMoveWindow(display, window, (screen->width / 2) - (currentWindowWidth / 2), 
+        (screen->height / 2) - (currentWindowHeight / 2));
 
     // Create GL context and make it current
     GLXContext glContext = glXCreateContext(display, visualInfo, NULL, GL_TRUE);
@@ -158,13 +163,18 @@ int main(int argc, char** argv) {
             // ConfigureNotify event is dispatched on window resize event (and other times too),
             // so we query for current screen size and force GL viewport resize
             if (xEvent.type == ConfigureNotify) {
-                XGetWindowAttributes(linuxWindowInfo.display, linuxWindowInfo.window, &windowAttributes);
-                glViewport(0, 0, windowAttributes.width, windowAttributes.height);
+                XConfigureEvent xce = xEvent.xconfigure;
+
+                // Check if window was actually resized
+                if (currentWindowWidth != xce.width || currentWindowHeight != xce.height) {
+                    XGetWindowAttributes(linuxWindowInfo.display, linuxWindowInfo.window, &windowAttributes);
+                    glViewport(0, 0, windowAttributes.width, windowAttributes.height);
+                }
             // ClientMessage is dispatched on window close request, but we also have to check
             // if event data equals to atom defined earlier
             } else if (xEvent.type == ClientMessage) {      
                 if ((unsigned long) xEvent.xclient.data.l[0] == wmDeleteMessage) {
-                    printf("[main] Received exit event, quitting...\n");
+                    LOG3DHW("[main] Received exit event, quitting...");
 
                     glXMakeCurrent(linuxWindowInfo.display, None, NULL);
                     glXDestroyContext(linuxWindowInfo.display, linuxWindowInfo.glContext);

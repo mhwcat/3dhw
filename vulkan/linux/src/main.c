@@ -1,8 +1,12 @@
+// Use IEEE Standard 1003.1-2008 POSIX extensions
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include <math.h>
 
 #include <X11/X.h>
@@ -37,6 +41,8 @@ static const char* validationLayerNames[] = {
     "VK_LAYER_KHRONOS_validation"
 };
 static const int MAX_FRAMES_IN_FLIGHT = 2;
+static int currentWindowWidth = WINDOW_WIDTH;
+static int currentWindowHeight = WINDOW_HEIGHT;
 
 int main(int argc, char** argv) {
     // Initializing threads may be required on some implementations for Xlib surface.
@@ -45,7 +51,7 @@ int main(int argc, char** argv) {
 
     Display* display = XOpenDisplay(NULL);
     if (display == NULL) {
-        printf("[main] Failed opening display!");
+        LOG3DHW("[main] Failed opening display!");
         exit(-1);
     }
 
@@ -56,7 +62,7 @@ int main(int argc, char** argv) {
     // In Vulkan, we cannot use GLX to select appropriate VisualInfo for us, so we match it to support 32-bit TrueColor
     XVisualInfo visualInfo;
     if (!XMatchVisualInfo(display, defaultScreenIndex, 32, TrueColor, &visualInfo)) {
-        printf("[main] Failed choosing appropriate XVisualInfo!");
+        LOG3DHW("[main] Failed choosing appropriate XVisualInfo!");
         exit(-1);
     }
 
@@ -76,14 +82,14 @@ int main(int argc, char** argv) {
     setWindowAttributes.border_pixel = 0;
 
     // Create window
-    Window window = XCreateWindow(display, root, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, visualInfo.depth, InputOutput, 
+    Window window = XCreateWindow(display, root, 0, 0, currentWindowWidth, currentWindowHeight, 0, visualInfo.depth, InputOutput, 
         visualInfo.visual, CWColormap | CWEventMask | CWBackPixel | CWBorderPixel, &setWindowAttributes);
 
     XMapWindow(display, window);
     XStoreName(display, window, WINDOW_TITLE);
     // Move window to center of screen (setting x, y in XCreateWindow does not work)
-    XMoveWindow(display, window, (screen->width / 2) - (WINDOW_WIDTH / 2), 
-        (screen->height / 2) - (WINDOW_HEIGHT / 2));        
+    XMoveWindow(display, window, (screen->width / 2) - (currentWindowWidth / 2), 
+        (screen->height / 2) - (currentWindowHeight / 2));        
 
     Atom wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(display, window, &wmDeleteMessage, 1);
@@ -139,7 +145,7 @@ int main(int argc, char** argv) {
     pickPhysicalDevice(&vkData);
     createDeviceQueues(&vkData, display, &visualInfo, validationLayerNames, 1);
     createSurface(&vkData, display, window);
-    createSwapchainAndImageViews(&vkData, WINDOW_WIDTH, WINDOW_HEIGHT);
+    createSwapchainAndImageViews(&vkData, currentWindowWidth, currentWindowHeight);
     createRenderPass(&vkData);
     createDescriptorSetLayout(&vkData);
     loadShaderFromFile("vert.spv", &vkData.vertexShaderBytes, &vkData.vertexShaderLength);
@@ -211,7 +217,12 @@ int main(int argc, char** argv) {
             // so we mark framebuffer as resized here.
             // Note: this is likely redundant because we'll get VK_ERROR_OUT_OF_DATE_KHR from vkQueuePresentKHR() anyway.
             if (xEvent.type == ConfigureNotify) {
-                framebufferResized = true;
+                XConfigureEvent xce = xEvent.xconfigure;
+
+                // Check if window was actually resized
+                if (currentWindowWidth != xce.width || currentWindowHeight != xce.height) {
+                    framebufferResized = true;
+                }
             // ClientMessage is dispatched on window close request, but we also have to check
             // if event data equals to atom defined earlier
             } else if (xEvent.type == ClientMessage) {      
@@ -340,7 +351,7 @@ int main(int argc, char** argv) {
     // Destroy Vulkan instance *after* window/display cleanup
     // https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/issues/1894
     vkDestroyInstance(vkData.instance, NULL);
-    LOG3DHW("[main] Destroyed instance")
+    LOG3DHW("[main] Destroyed instance");
 
     return EXIT_SUCCESS;
 }

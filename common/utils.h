@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #define LOG3DHW(...) { TCHAR buffer[1024] = { '\0' }; snprintf(buffer, 1024, __VA_ARGS__); OutputDebugString(buffer); OutputDebugString("\n"); }
 #else
